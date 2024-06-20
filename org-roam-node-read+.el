@@ -43,7 +43,7 @@ create the node struct appropriately!")
   "where
    nodes_view.file not like '%%%%/references/%%%%'
 
-  -- AND nodes_view.file not like '%%%%/folder/%%%%
+  -- AND nodes_view.file not like '%%%%/folder/%%%%'
   -- add additional folders like above."
 
   "Define default FILTER of `org-roam-node-list',
@@ -61,9 +61,9 @@ folders mentioned here are excluded from the list.")
   -- sort all other categories by modification time
   -- also keep headline nodes before file nodes."
 
-  "Define default SORT of `org-roam-node-list'.")
+  "Define default SORT of `+org-roam-node-list'.")
 
-(defvar org-roam-node-list-differentiate-aliases nil
+(defvar org-roam-node-list-differentiate-aliases t
   "Whether to differentiate each alias as a node in org-roam-node-list")
 
 (defun org-roam-node-struct-create (&optional slots)
@@ -88,10 +88,10 @@ The slot list is defined in `org-roam-node-struct--slots'."
     (org-roam-node-struct-create slots)))
 
 ;; Evaluate the function to create the struct
-(org-roam-node-struct-set-slots '(id &optional file file-title level point olp file-mtime title))
+;; (org-roam-node-struct-set-slots '(id &optional file file-title level point olp file-mtime title))
 
-;; (org-roam-node-struct-set-slots '(id &optional file file-title level todo point priority scheduled deadline ;; 0 - 8
-				     ;; properties olp file-atime file-mtime tags refs title aliases))         ;; 9 - 16
+(org-roam-node-struct-set-slots '(id &optional file file-title level todo point priority scheduled deadline ;; 0 - 8
+				     properties olp file-atime file-mtime tags refs title aliases))         ;; 9 - 16
 
 (defun +org-roam-node-list (&optional filter sort)
   (let* ((gc-cons-threshold org-roam-db-gc-threshold)  ; let users reuse db-gc threshold here - set it to
@@ -105,7 +105,7 @@ The slot list is defined in `org-roam-node-struct--slots'."
 	 (rows (org-roam-db-query
 		(format
 		 "select %s
-		  from nodes_view left join files on nodes_view.file = files.file
+		  from nodes_view inner join files on nodes_view.file = files.file
 	           %s
         	   %s;"
 		 column-names
@@ -138,7 +138,7 @@ The slot list is defined in `org-roam-node-struct--slots'."
 
 (defun +org-roam-node-read--completions (&optional filter sort)
   "Modfied `org-roam-node-read--completions'
-Filtering and Sorting made redundant.
+Filtering and Sorting is delegated to `+org-roam-node-list'
 
 Return an alist for node completion.
 The car is the displayed title or alias for the node, and the cdr
