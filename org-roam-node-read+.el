@@ -95,7 +95,7 @@ The slot list is defined in `org-roam-node-struct--slots'."
 
 (defun +org-roam-node-list (&optional filter sort)
   (let* ((gc-cons-threshold org-roam-db-gc-threshold)  ; let users reuse db-gc threshold here - set it to
-	                                               ; (* 2 8 1024 1024) 16mb, very marginal returns after this.
+						       ; (* 2 8 1024 1024) 16mb, very marginal returns after this.
 	 (slots org-roam-node-struct--slots)
 	 (columns (cl-remove-if 'null
 				(mapcar (lambda (slot)
@@ -106,8 +106,8 @@ The slot list is defined in `org-roam-node-struct--slots'."
 		(format
 		 "select %s
 		  from nodes_view inner join files on nodes_view.file = files.file
-	           %s
-        	   %s;"
+		   %s
+		   %s;"
 		 column-names
 		 (or filter org-roam-node-list-filter "")
 		 (or sort org-roam-node-list-sort "")))))
@@ -118,23 +118,23 @@ The slot list is defined in `org-roam-node-struct--slots'."
 	  ;; calculate common value from example row
 	  (let* ((ex-row (car rows))                                       ; Take the first row to determine lengths
 		 (total-length (length ex-row)))                           ; length of a row
-	    
+
 	    ;; (common-attrs (seq-subseq row 0 15)) ; Combine slots 0 through 14
 	    ;; (title (nth 15 row))                 ; Title at index 15
 	    ;; (aliases (nth 16 row))               ; Aliases at index 16
-	    
+
 	    (cl-loop for row in rows
 		     append (let ((common-attrs (seq-subseq row 0 (- total-length 2)))  ; Extract common attributes
 				  (title (nth (- total-length 2) row))                  ; Title at index 15
 				  (aliases (nth (- total-length 1) row)))               ; Aliases at index 16
 		     (mapcar (lambda (temp-title)
-			       (apply '+org-roam-node-create 
-				      (append common-attrs 
+			       (apply '+org-roam-node-create
+				      (append common-attrs
 					      (list temp-title aliases))))
 			     (cons title aliases))))))
       ;; else
       (cl-loop for row in rows
-	       collect (apply #'+org-roam-node-create row))))) 
+	       collect (apply #'+org-roam-node-create row)))))
 
 (defun +org-roam-node-read--completions (&optional filter sort)
   "Modfied `org-roam-node-read--completions'
