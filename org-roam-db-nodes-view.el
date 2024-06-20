@@ -2,7 +2,9 @@
 
 (require 'org-roam-db)
 
-(setq org-roam-db-gc-threshold (* 2 8 1024 1024))
+(setq org-roam-db-gc-threshold
+      (unless (> gc-cons-threshold (* 2 8 1024 1024))
+	(* 2 8 1024 1024)))
 
 (defconst org-roam-db--nodes-view-schemata
   '((nodes-view
@@ -180,7 +182,7 @@
   ;; defrag the db
   (emacsql db "vacuum;"))
 
-;; Initialise org-roam-db-nodes-view after initialising org-roam.db
+;; Initialise org-roam-db-nodes-view after a fresh initialisation of org-roam.db
 (advice-add 'org-roam-db--init :after #'org-roam-db--init-nodes-view)
 
 (provide 'org-roam-db-nodes-view)
