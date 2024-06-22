@@ -6,14 +6,20 @@
 (defconst org-roam-node-struct--slots
   '(id file file-title level todo point priority scheduled deadline
        properties olp file-atime file-mtime tags refs title aliases)
-  
+
   "Define the list (&order) of slots used in the BOA Constructor
 `+org-roam-node-create'.")
 
 (defvar org-roam-node-list--query-subset org-roam-node-struct--slots
-  
+
   "Stores the subset of org-roam-node-struct--slots that is used
-in `+org-roam-node-list' for querying from the db.")
+in `+org-roam-node-list' for querying from the db
+
+Be careful when setting this variable directly,
+use `org-roam-node-struct-set-slots' to set this variable appropriately.")
+;; NOTE:
+;; Evaluate the function to generate a subset for querying the db
+;; (org-roam-node-struct-set-slots '(id file file-title level point olp file-mtime title))
 
 (defconst org-roam-node-struct-db-mapping
   '((nil . "null")
@@ -180,7 +186,3 @@ The displayed title is formatted according to `+org-roam-node-display-template'.
 (advice-add 'org-roam-node-read--completions :override #'+org-roam-node-read--completions)
 
 (provide 'org-roam-node-read+)
-
-;; NOTE:
-;; Evaluate the function to generate a subset for querying the db
-;; (org-roam-node-struct-set-slots '(id file file-title level point olp file-mtime title))
