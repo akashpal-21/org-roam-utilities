@@ -10,7 +10,7 @@
 `+org-roam-node-create'.")
 
 (defvar org-roam-node-list--query-subset
-  nil
+  org-roam-node-struct--slots
   "Stores the subset of org-roam-node-struct--slots that is used
 in `+org-roam-node-list' for querying from the db.")
 
@@ -98,12 +98,6 @@ Arguments may be provided in any order."
 
     (setq org-roam-node-list--query-subset subset)))
 
-;; Evaluate the function to generate a subset for querying the db
-(org-roam-node-struct-set-slots '(id file file-title level point olp file-mtime title))
-
-;; (org-roam-node-struct-set-slots '(id file file-title level todo point priority scheduled deadline ;; 0 - 8
-;; properties olp file-atime file-mtime tags refs title aliases))         ;; 9 - 16
-
 (defun +org-roam-node-list (&optional filter sort)
   (let* ((gc-cons-threshold org-roam-db-gc-threshold)  ; let users reuse db-gc threshold here - set it to
 						       ; (* 2 8 1024 1024) 16mb, very marginal returns after this.
@@ -182,3 +176,7 @@ The displayed title is formatted according to `+org-roam-node-display-template'.
 (advice-add 'org-roam-node-read--completions :override #'+org-roam-node-read--completions)
 
 (provide 'org-roam-node-read+)
+
+;; NOTE:
+;; Evaluate the function to generate a subset for querying the db
+;; (org-roam-node-struct-set-slots '(id file file-title level point olp file-mtime title))
