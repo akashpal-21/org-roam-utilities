@@ -3,19 +3,20 @@
 (require 'org-roam-node)
 (require 'org-roam-db-nodes-view)
 
-(defvar org-roam-node-struct--slots
-  '(file file-title file-hash file-atime file-mtime
-	 id level point todo priority scheduled deadline title properties olp
-	 tags aliases refs)
-  "Define the list of slots to be used in the BOA Constructor
-+org-roam-node-create.
+(defconst org-roam-node-struct--slots
+  '(id &optional file file-title level todo point priority scheduled deadline
+       properties olp file-atime file-mtime tags refs title aliases)
+  "Define the list (&order) of slots used in the BOA Constructor
+`+org-roam-node-create'.")
 
-Do NOT set this variable directly - instead use
-`org-roam-node-struct-set-slots' to set this variable as well as
-create the node struct appropriately!")
+(defvar org-roam-node-list--query-subset
+  nil
+  "Stores the subset of org-roam-node-struct--slots that is used
+in `+org-roam-node-list' for querying from the db.")
 
-(defvar org-roam-node-struct-db-mapping
-  '((file . "nodes_view.file")
+(defconst org-roam-node-struct-db-mapping
+  '((nil . "null")
+    (file . "nodes_view.file")
     (file-title . "files.title")
     (file-hash . "files.hash")
     (file-atime . "files.atime")
@@ -66,46 +67,55 @@ folders mentioned here are excluded from the list.")
 (defvar org-roam-node-list-differentiate-aliases t
   "Whether to differentiate each alias as a node in org-roam-node-list")
 
-(defun org-roam-node-struct-create (&optional slots)
-  "Dynamically create the `org-roam-node` struct with a BOA CONSTRUCTOR.
-BOA stands for By Order of Arguments - I'm not making this up,
+;; Create the `org-roam-node` struct with a BOA CONSTRUCTOR `+org-roam-node-create'.
+;; BOA stands for By Order of Arguments - I'm not making this up
+(cl-defstruct (org-roam-node (:constructor org-roam-node-create)
+			     (:constructor +org-roam-node-create
+					   (id &optional
+					       file file-title level todo point priority scheduled deadline
+					       properties olp file-atime file-mtime tags refs title aliases))
+			     (:copier nil))
+  "A heading or top level file with an assigned ID property."
+  file file-title file-hash file-atime file-mtime
+  id level point todo priority scheduled deadline title properties olp
+  tags aliases refs)
 
-The slot list is defined in `org-roam-node-struct--slots'."
-  (let ((constructor-args (or slots
-			      org-roam-node-struct--slots)))
-    (eval `(cl-defstruct (org-roam-node (:constructor org-roam-node-create)
-					(:constructor +org-roam-node-create ,constructor-args)
-					(:copier nil))
-	     "A heading or top level file with an assigned ID property."
-	     file file-title file-hash file-atime file-mtime
-	     id level point todo priority scheduled deadline title properties olp
-	     tags aliases refs))))
+(defun org-roam-node-struct-set-slots (arg-list)
+  "Create a subset of `org-roam-node-struct--slots'
+to be used in `+org-roam-node-list' for querying the database.
 
-(defun org-roam-node-struct-set-slots (&optional slots)
-  (let ((slots (or slots
-		   org-roam-node-struct--slots)))
-    (setq org-roam-node-struct--slots slots)
-    (org-roam-node-struct-create slots)))
+Arguments may be provided in any order."
+  (let (subset)
 
-;; Evaluate the function to create the struct
-;; (org-roam-node-struct-set-slots '(id &optional file file-title level point olp file-mtime title))
+    (dolist (slot (remove '&optional org-roam-node-struct--slots))
+      (if (member slot arg-list)
+	  (setq subset (append subset (list slot)))
+	(setq subset (append subset (list nil)))))
 
-(org-roam-node-struct-set-slots '(id &optional file file-title level todo point priority scheduled deadline ;; 0 - 8
-				     properties olp file-atime file-mtime tags refs title aliases))         ;; 9 - 16
+    (dolist (arg arg-list)
+      (unless (member arg org-roam-node-struct--slots)
+	(warn "Invalid argument %s provided! Ignored!" arg)))
+
+    (setq org-roam-node-list--query-subset subset)))
+
+;; Evaluate the function to generate a subset for querying the db
+(org-roam-node-struct-set-slots '(id file file-title level point olp file-mtime title))
+
+;; (org-roam-node-struct-set-slots '(id file file-title level todo point priority scheduled deadline ;; 0 - 8
+;; properties olp file-atime file-mtime tags refs title aliases))         ;; 9 - 16
 
 (defun +org-roam-node-list (&optional filter sort)
   (let* ((gc-cons-threshold org-roam-db-gc-threshold)  ; let users reuse db-gc threshold here - set it to
 						       ; (* 2 8 1024 1024) 16mb, very marginal returns after this.
-	 (slots org-roam-node-struct--slots)
-	 (columns (cl-remove-if 'null
-				(mapcar (lambda (slot)
-					  (cdr (assoc slot org-roam-node-struct-db-mapping)))
-					slots)))
+	 (slots org-roam-node-list--query-subset)
+	 (columns (mapcar (lambda (slot)
+			    (cdr (assoc slot org-roam-node-struct-db-mapping)))
+			  slots))
 	 (column-names (mapconcat 'identity columns ", "))
 	 (rows (org-roam-db-query
 		(format
 		 "select %s
-		  from nodes_view inner join files on nodes_view.file = files.file
+		  from nodes_view join files using (file)
 		   %s
 		   %s;"
 		 column-names
