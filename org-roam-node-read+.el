@@ -121,10 +121,9 @@ Arguments may be provided in any order."
 	(setq subset (append subset (list nil)))))
 
     (setq org-roam-node-list--query-subset
-	  (mapconcat 'identity
-		     (mapcar (lambda (column)
-			       (cdr (assoc column org-roam-node-struct-db-mapping)))
-			     subset)
+	  (mapconcat (lambda (column)
+		       (cdr (assoc column org-roam-node-struct-db-mapping)))
+		     subset
 		     ", "))))
 
 (defun +org-roam-node-list (&optional filter sort)
