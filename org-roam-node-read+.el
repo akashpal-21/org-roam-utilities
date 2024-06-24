@@ -3,6 +3,10 @@
 (require 'org-roam-node)
 (require 'org-roam-db-nodes-view)
 
+
+;; HHHH---------------------------------------------------
+;; Variables
+
 (defconst org-roam-node-struct--slots
   '(id file file-title level todo point priority scheduled deadline
        properties olp file-atime file-mtime tags refs title aliases)
@@ -10,16 +14,22 @@
   "Define the list (&order) of slots used in the BOA Constructor
 `+org-roam-node-create'.")
 
-(defvar org-roam-node-list--query-subset org-roam-node-struct--slots
+(defvar org-roam-node-list--query-subset
+  "nodes_view.nview_id, nodes_view.file, files.title, nodes_view.\"level\",
+ nodes_view.todo, nodes_view.pos, nodes_view.priority, nodes_view.scheduled,
+ nodes_view.deadline, nodes_view.properties, nodes_view.olp, files.atime,
+ files.mtime, nodes_view.tag, nodes_view.type_ref,
+ nodes_view.title, nodes_view.alias"
 
-  "Stores the subset of org-roam-node-struct--slots that is used
-in `+org-roam-node-list' for querying from the db
+  "Stores the column names of the subset of `org-roam-node-struct--slots'
+that is used in `+org-roam-node-list' for querying from the db
 
 Be careful when setting this variable directly,
 use `org-roam-node-struct-set-slots' to set this variable appropriately.")
 ;; NOTE:
 ;; Evaluate the function to generate a subset for querying the db
-;; (org-roam-node-struct-set-slots '(id file file-title level point olp file-mtime title))
+;; Example: (org-roam-node-struct-set-slots '(id file file-title level point olp file-mtime title))
+;; Default: (org-roam-node-struct-set-slots org-roam-node-struct--slots)
 
 (defconst org-roam-node-struct-db-mapping
   '((nil . "null")
@@ -74,6 +84,10 @@ folders mentioned here are excluded from the list.")
 (defvar org-roam-node-list-differentiate-aliases t
   "Whether to differentiate each alias as a node in org-roam-node-list")
 
+
+;; HHHH---------------------------------------------------
+;; Definitions
+
 ;; Create the `org-roam-node` struct with a BOA CONSTRUCTOR `+org-roam-node-create'.
 ;; BOA stands for By Order of Arguments - I'm not making this up
 (cl-defstruct (org-roam-node (:constructor org-roam-node-create)
@@ -89,37 +103,41 @@ folders mentioned here are excluded from the list.")
 
 (defun org-roam-node-struct-set-slots (arg-list)
   "Create a subset of `org-roam-node-struct--slots'
+with appropriate conversions to column names in the db
 to be used in `+org-roam-node-list' for querying the database.
+
+This sets the variable `org-roam-node-list--query-subset'
 
 Arguments may be provided in any order."
   (let (subset)
-
-    (dolist (slot (remove '&optional org-roam-node-struct--slots))
-      (if (member slot arg-list)
-	  (setq subset (append subset (list slot)))
-	(setq subset (append subset (list nil)))))
 
     (dolist (arg arg-list)
       (unless (member arg org-roam-node-struct--slots)
 	(warn "Invalid argument %s provided! Ignored!" arg)))
 
-    (setq org-roam-node-list--query-subset subset)))
+    (dolist (slot org-roam-node-struct--slots)
+      (if (member slot arg-list)
+	  (setq subset (append subset (list slot)))
+	(setq subset (append subset (list nil)))))
+
+    (setq org-roam-node-list--query-subset
+	  (mapconcat 'identity
+		     (mapcar (lambda (column)
+			       (cdr (assoc column org-roam-node-struct-db-mapping)))
+			     subset)
+		     ", "))))
 
 (defun +org-roam-node-list (&optional filter sort)
-  (let* ((gc-cons-threshold org-roam-db-gc-threshold)  ; let users reuse db-gc threshold here - set it to
-						       ; (* 2 8 1024 1024) 16mb, very marginal returns after this.
-	 (slots org-roam-node-list--query-subset)
-	 (columns (mapcar (lambda (slot)
-			    (cdr (assoc slot org-roam-node-struct-db-mapping)))
-			  slots))
-	 (column-names (mapconcat 'identity columns ", "))
+  (let* ((gc-cons-threshold org-roam-db-gc-threshold)
+	 ;; let users reuse db-gc threshold here - set it to
+	 ;; (* 2 8 1024 1024) 16mb, very marginal returns after this.
 	 (rows (org-roam-db-query
 		(format
 		 "select %s
 		  from nodes_view join files using (file)
 		   %s
 		   %s;"
-		 column-names
+		 org-roam-node-list--query-subset
 		 (or filter org-roam-node-list-filter "")
 		 (or sort org-roam-node-list-sort "")))))
 
@@ -153,7 +171,11 @@ The displayed title is formatted according to `+org-roam-node-display-template'.
 	      (cons display-candidate node)))
 	  (+org-roam-node-list filter sort)))
 
+;; HHHH---------------------------------------------------
+;; Customisations
+
 ;; Customise appearance of nodes in `org-roam-find' & `org-roam-insert'
+;; Redefine this function with the required display template.
 (defun +org-roam-node-display-template (node)
   (let* ((level (org-roam-node-level node))
 	 (file (org-roam-node-file node))
@@ -171,7 +193,11 @@ The displayed title is formatted according to `+org-roam-node-display-template'.
      (when (> level 1) (concat (string-join (org-roam-node-olp node) " > ") " > "))
      (propertize (org-roam-node-title node) 'face 'bold))))
 
+;; HHHH---------------------------------------------------
+
 ;; Initialise the new read protocol
 (advice-add 'org-roam-node-read--completions :override #'+org-roam-node-read--completions)
 
+
+;; End
 (provide 'org-roam-node-read+)
