@@ -15,21 +15,34 @@
 `+org-roam-node-create'.")
 
 (defvar org-roam-node-list--query-subset
-  "nodes_view.nview_id, nodes_view.file, files.title, nodes_view.\"level\",
- nodes_view.todo, nodes_view.pos, nodes_view.priority, nodes_view.scheduled,
- nodes_view.deadline, nodes_view.properties, nodes_view.olp, files.atime,
- files.mtime, nodes_view.tag, nodes_view.type_ref,
- nodes_view.title, nodes_view.alias"
+  "nodes_view.nview_id,
+ nodes_view.file,
+ files.title,
+ nodes_view.\"level\",
+ nodes_view.todo,
+ nodes_view.pos,
+ nodes_view.priority,
+ nodes_view.scheduled,
+ nodes_view.deadline,
+ nodes_view.properties,
+ nodes_view.olp,
+ files.atime,
+ files.mtime,
+ nodes_view.tag,
+ nodes_view.type_ref,
+ nodes_view.title,
+ nodes_view.alias"
 
   "Stores the column names of the subset of `org-roam-node-struct--slots'
 that is used in `+org-roam-node-list' for querying from the db
 
 Be careful when setting this variable directly,
-use `org-roam-node-struct-set-slots' to set this variable appropriately.")
-;; NOTE:
-;; Evaluate the function to generate a subset for querying the db
-;; Example: (org-roam-node-struct-set-slots '(id file file-title level point olp file-mtime title))
-;; Default: (org-roam-node-struct-set-slots org-roam-node-struct--slots)
+use `org-roam-node-struct-set-slots' to set this variable appropriately
+
+ Evaluate the function to generate a subset for querying the db
+ Example: (org-roam-node-struct-set-slots '(id file file-title level point olp file-mtime title))
+ Default: (org-roam-node-struct-set-slots org-roam-node-struct--slots)
+.")
 
 (defconst org-roam-node-struct-db-mapping
   '((nil . "null")
