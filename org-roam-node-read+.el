@@ -37,12 +37,11 @@
 that is used in `+org-roam-node-list' for querying from the db
 
 Be careful when setting this variable directly,
-use `org-roam-node-struct-set-slots' to set this variable appropriately
+use `org-roam-node-struct-set-slots' to set this variable appropriately.
 
  Evaluate the function to generate a subset for querying the db
  Example: (org-roam-node-struct-set-slots '(id file file-title level point olp file-mtime title))
- Default: (org-roam-node-struct-set-slots org-roam-node-struct--slots)
-.")
+ Default: (org-roam-node-struct-set-slots org-roam-node-struct--slots)")
 
 (defconst org-roam-node-struct-db-mapping
   '((nil . "null")
