@@ -45,16 +45,16 @@ use `org-roam-node-struct-set-slots' to set this variable appropriately.
 Evaluate the function to generate a subset for querying the db
 
 Example:
-(org-roam-node-struct-set-slots '(file point file-title level title aliases))
+(org-roam-node-struct-set-slots `(file point file-title level title aliases))
 
 Default:
 (org-roam-node-struct-set-slots org-roam-node-struct--slots)
 
 Minimally we need only those slots that are in the display template
-`+org-roam-node-display-template' - in addition to 'file' & 'point'
+`+org-roam-node-display-template' - in addition to \"file\" & \"point\"
 
 Also if `org-roam-node-list-differentiate-aliases' is NON-NIL
-then 'title' & 'aliases' is also required.")
+then \"title\" & \"aliases\" is also required.")
 
 (defconst org-roam-node-struct-db-mapping
   '((nil . "null")
@@ -77,7 +77,8 @@ then 'title' & 'aliases' is also required.")
     (aliases . "nodes_view.alias")
     (refs . "nodes_view.type_ref"))
 
-  "Alist of mapping between structure slots and corresponding database column names.")
+  "Alist of mapping between structure slots
+and corresponding database column names.")
 
 (defvar org-roam-directory-name (file-name-nondirectory (directory-file-name org-roam-directory))
   "The name of the org-roam root directory.")
@@ -129,6 +130,7 @@ folders mentioned here are excluded from the list.")
   id level point todo priority scheduled deadline title properties olp
   tags aliases refs)
 
+;;;###autoload
 (defun org-roam-node-struct-set-slots (arg-list)
   "Create a subset of `org-roam-node-struct--slots'
 with appropriate conversions to column names in the db
@@ -137,13 +139,13 @@ to be used in `+org-roam-node-list' for querying the database.
 This sets the variable `org-roam-node-list--query-subset'
 
 Example:
-(org-roam-node-struct-set-slots '(file point file-title level title aliases))
+(org-roam-node-struct-set-slots `(file point file-title level title aliases))
 
 Minimally we need only those slots that are in the display template
-`+org-roam-node-display-template' - in addition to 'file' & 'point'
+`+org-roam-node-display-template' - in addition to \"file\" & \"point\"
 
 Also if `org-roam-node-list-differentiate-aliases' is NON-NIL
-then 'title' & 'aliases' is also required,
+then \"title\" & \"aliases\" is also required,
 
 Arguments may be provided in any order."
   (let (subset)
