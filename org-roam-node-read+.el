@@ -8,22 +8,22 @@
 ;; Variables
 
 (defconst org-roam-node-struct--slots
-  '(file point
-	 file-title file-atime file-mtime
-	 id level todo priority scheduled deadline properties olp
-	 tags refs
-	 title aliases)
+  '(id file point
+       file-title file-atime file-mtime
+       level todo priority scheduled deadline properties olp
+       tags refs
+       title aliases)
 
   "Define the list (&order) of slots used in the BOA Constructor
 `+org-roam-node-create'.")
 
 (defvar org-roam-node-list--query-subset
-  "nodes_view.file,
+  "nodes_view.nview_id,
+ nodes_view.file,
  nodes_view.pos,
  files.title,
  files.atime,
  files.mtime,
- nodes_view.nview_id,
  nodes_view.\"level\",
  nodes_view.todo,
  nodes_view.priority,
@@ -45,13 +45,13 @@ use `org-roam-node-struct-set-slots' to set this variable appropriately.
 Evaluate the function to generate a subset for querying the db
 
 Example:
-(org-roam-node-struct-set-slots `(file point file-title level title aliases))
+(org-roam-node-struct-set-slots `(id file point file-title level title aliases))
 
 Default:
 (org-roam-node-struct-set-slots org-roam-node-struct--slots)
 
 Minimally we need only those slots that are in the display template
-`+org-roam-node-display-template' - in addition to \"file\" & \"point\"
+`+org-roam-node-display-template' - in addition to \"id\", \"file\" & \"point\"
 
 Also if `org-roam-node-list-differentiate-aliases' is NON-NIL
 then \"title\" & \"aliases\" is also required.")
@@ -118,19 +118,18 @@ folders mentioned here are excluded from the list.")
 ;; BOA stands for By Order of Arguments - I'm not making this up
 (cl-defstruct (org-roam-node (:constructor org-roam-node-create)
 			     (:constructor +org-roam-node-create
-					   (file point
-						 &optional
-						 file-title file-atime file-mtime
-						 id level todo priority scheduled deadline properties olp
-						 tags refs
-						 title aliases))
+					   (id file point
+					       &optional
+					       file-title file-atime file-mtime
+					       level todo priority scheduled deadline properties olp
+					       tags refs
+					       title aliases))
 			     (:copier nil))
   "A heading or top level file with an assigned ID property."
   file file-title file-hash file-atime file-mtime
   id level point todo priority scheduled deadline title properties olp
   tags aliases refs)
 
-;;;###autoload
 (defun org-roam-node-struct-set-slots (arg-list)
   "Create a subset of `org-roam-node-struct--slots'
 with appropriate conversions to column names in the db
@@ -139,10 +138,10 @@ to be used in `+org-roam-node-list' for querying the database.
 This sets the variable `org-roam-node-list--query-subset'
 
 Example:
-(org-roam-node-struct-set-slots `(file point file-title level title aliases))
+(org-roam-node-struct-set-slots `(id file point file-title level title aliases))
 
 Minimally we need only those slots that are in the display template
-`+org-roam-node-display-template' - in addition to \"file\" & \"point\"
+`+org-roam-node-display-template' - in addition to \"id\", \"file\" & \"point\"
 
 Also if `org-roam-node-list-differentiate-aliases' is NON-NIL
 then \"title\" & \"aliases\" is also required,
