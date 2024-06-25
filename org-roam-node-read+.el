@@ -51,10 +51,10 @@ Default:
 (org-roam-node-struct-set-slots org-roam-node-struct--slots)
 
 Minimally we need only those slots that are in the display template
-`+org-roam-node-display-template' - in addition to `file' & `point'
+`+org-roam-node-display-template' - in addition to 'file' & 'point'
 
 Also if `org-roam-node-list-differentiate-aliases' is NON-NIL
-then `title' & `aliases' is also required.")
+then 'title' & 'aliases' is also required.")
 
 (defconst org-roam-node-struct-db-mapping
   '((nil . "null")
@@ -140,10 +140,10 @@ Example:
 (org-roam-node-struct-set-slots '(file point file-title level title aliases))
 
 Minimally we need only those slots that are in the display template
-`+org-roam-node-display-template' - in addition to `file' & `point'
+`+org-roam-node-display-template' - in addition to 'file' & 'point'
 
 Also if `org-roam-node-list-differentiate-aliases' is NON-NIL
-then `title' & `aliases' is also required,
+then 'title' & 'aliases' is also required,
 
 Arguments may be provided in any order."
   (let (subset)
