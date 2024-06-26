@@ -1,4 +1,8 @@
-;; org-roam-link-utils.el
+;; org-roam-link-utils.el -*- Some utilities for managing org-roam links ("roam:")
+
+
+;; HHHH---------------------------------------------------
+;; Customisations
 
 ;; Do not auto transform "roam:" links to "id:" links on save.
 (setq org-roam-link-auto-replace nil)
@@ -10,6 +14,27 @@
 
 ;; Customise appearance of [[roam:]] links
 (org-link-set-parameters "roam" :follow #'org-roam-link-follow-link :face 'nobreak-space)
+
+
+;; HHHH---------------------------------------------------
+;; Helper Function
+
+(defun +org-roam-id-goto (id)
+  "Switch to the buffer containing the entry with id ID.
+Move the cursor to that entry in that buffer.
+Like `org-id-goto', but additionally uses the Org-roam database"
+  (interactive "sID: ")
+  (let ((m (org-roam-id-find id 'marker)))
+    (unless m
+      (error "Cannot find entry with ID \"%s\"" id))
+    (pop-to-buffer-same-window (marker-buffer m))
+    (goto-char m)
+    (move-marker m nil)
+    (org-fold-show-context)))
+
+
+;; HHHH---------------------------------------------------
+;; Definitions
 
 (defun org-roam-link-find ()
   "Find \"roam:\" links in Org-Roam"
@@ -304,4 +329,8 @@ Aborting! This is not allowed."))
       ;; switch to our orignal-buffer
       (switch-to-buffer original-buffer))))
 
+;; HHHH---------------------------------------------------
+
+
+;; End
 (provide 'org-roam-link-utils)
