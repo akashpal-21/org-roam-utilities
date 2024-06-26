@@ -4,9 +4,9 @@
 (setq org-roam-link-auto-replace nil)
 
 (defun org-roam-link-replace-all--export (backend)
-  "Preprocess the buffer to replace 'roam:' links with 'id:' links."
+  "Preprocess the buffer to replace \"roam:\" links with \"id:\" links."
   (org-roam-link-replace-all))
-(add-hook 'org-export-before-processing-hook #'org-roam-link-replace-all--export)
+(add-hook 'org-export-before-processing-functions #'org-roam-link-replace-all--export)
 
 ;; Customise appearance of [[roam:]] links
 (org-link-set-parameters "roam" :follow #'org-roam-link-follow-link :face 'nobreak-space)
@@ -21,8 +21,8 @@
 		 from links
 		 inner join nodes on links.source = nodes.id
 		 inner join files on nodes.file = files.file
-		 where links.type like $s1")
-	 (links (org-roam-db-query query (concat "%" link-type "%")))
+		 where links.type = $s1")
+	 (links (org-roam-db-query query link-type))
 	 (choices (mapcar (lambda (link)
 			    (let* ((file-title (nth 0 link))
 				   (pos (nth 2 link))
@@ -43,7 +43,7 @@
 	 (selected-data (cdr (assoc selection choices)))
 	 (pos (nth 0 selected-data))
 	 (id (nth 1 selected-data)))
-    (org-roam-id-open id)
+    (org-roam-id-open id nil)
     (goto-char pos)))
 
 (defun org-roam-link-report-dangling ()
@@ -51,10 +51,10 @@
 in Org-Roam,
 
 A table containing the sources and the links themselves are presented."
-  (interactive)  
+  (interactive)
   (let ((buffer (generate-new-buffer "*Org-Roam Dangling Links*"))
-	(query (org-roam-db-query 
-		"select 
+	(query (org-roam-db-query
+		"select
 			'\"id:' || ltrim(links.source, '\"'),
 		       '(' || group_concat(rtrim(links.type, '\"') || ':' || ltrim(links.dest, '\"'), ' \"\n||\" ') || ')'
 		   from links
