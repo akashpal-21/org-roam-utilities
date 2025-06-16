@@ -96,7 +96,6 @@ folders mentioned here are excluded from the list.")
 (defvar org-roam-node-list-sort
   "order by
    length(nodes_view.file) - length(replace(nodes_view.file, '/', '')),
-   case when nodes_view.file like '%%%%guides%%%%' then files.mtime end desc,
    files.mtime desc,
    nodes_view.\"level\" desc
 
@@ -214,22 +213,29 @@ The displayed title is formatted according to `+org-roam-node-display-template'.
 ;; Customise appearance of nodes in `org-roam-find' & `org-roam-insert'
 ;; Redefine this function with the required display template.
 (defun +org-roam-node-display-template (node)
-  (let* ((level (org-roam-node-level node))
-	 (file (org-roam-node-file node))
-	 (dir (if (string-match
-		   (format "/%s/\\([^/]+\\)/" org-roam-directory-name)
-		   file)
-		  (match-string 1 file)
-		"/"))
-	 (formatted-dir (format "(%s)" dir))
-	 (dir-width 10)  ;; Set fixed width for the directory component
-	 (padded-dir (truncate-string-to-width (format "%-10s" formatted-dir) dir-width)))
-    (concat
-     padded-dir " "
-     (when (> level 0) (concat (propertize (org-roam-node-file-title node) 'face 'italic) " / "))
-     (when (> level 1) (concat (string-join (org-roam-node-olp node) " > ") " > "))
-     (propertize (org-roam-node-title node) 'face 'bold))))
-
+  (let* ((total-width 120)
+         (tags-width 35)
+         (title-width (- total-width tags-width))
+         (dir-width 20)
+         (level (org-roam-node-level node))
+         (file (org-roam-node-file node))
+         (dir (if (string-match
+                   (format "/%s/\\([^/]+\\)/" org-roam-directory-name)
+                   file)
+                  (match-string 1 file)
+                "/"))
+         (formatted-dir (concat "(" dir ")"))
+         (padded-dir (truncate-string-to-width formatted-dir dir-width 0 ?\s))
+         (tags (org-roam-node-tags node))
+         (title-part
+          (concat padded-dir " "
+		  (when (> level 0) (concat (propertize (org-roam-node-file-title node) 'face 'italic) " "))
+		  (when (>= level 1) (concat (string-join (org-roam-node-olp node) " > ") " > "))
+		  (propertize (org-roam-node-title node) 'face 'bold)))
+         (padded-title (truncate-string-to-width title-part title-width 0 ?\s))
+         (tags-str (truncate-string-to-width (propertize (string-join tags " ") 'face 'org-tag)
+					     tags-width 0 ?\s)))
+    (concat padded-title " " tags-str)))
 ;; HHHH---------------------------------------------------
 
 ;; Initialise the new read protocol
